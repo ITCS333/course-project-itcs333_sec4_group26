@@ -23,6 +23,12 @@ let currentComments = [];
 
 // --- Element Selections ---
 // TODO: Select all the elements you added IDs for in step 2.
+const resourceTitle = document.getElementById('resource-title');
+const resourceDescription = document.getElementById('resource-description');
+const resourceLink = document.getElementById('resource-link');
+const commentList = document.getElementById('comment-list');
+const commentForm = document.getElementById('comment-form');
+const newComment = document.getElementById('new-comment');
 
 // --- Functions ---
 
@@ -34,7 +40,8 @@ let currentComments = [];
  * 3. Return the id.
  */
 function getResourceIdFromURL() {
-  // ... your implementation here ...
+      const params = new URLSearchParams(window.location.search);
+    return params.get('id');
 }
 
 /**
@@ -46,7 +53,9 @@ function getResourceIdFromURL() {
  * 3. Set the `href` attribute of `resourceLink` to the resource's link.
  */
 function renderResourceDetails(resource) {
-  // ... your implementation here ...
+    resourceTitle.textContent = resource.title;
+    resourceDescription.textContent = resource.description;
+    resourceLink.href = resource.link;
 }
 
 /**
@@ -56,7 +65,18 @@ function renderResourceDetails(resource) {
  * (e.g., an <article> containing a <p> and a <footer>).
  */
 function createCommentArticle(comment) {
-  // ... your implementation here ...
+     const article = document.createElement('article');
+
+    const commentText = document.createElement('p');
+    commentText.textContent = comment.text;
+    article.appendChild(commentText);
+
+    const footer = document.createElement('footer');
+    footer.textContent = `Posted by: ${comment.author}`;
+    article.appendChild(footer);
+
+    return article;
+ 
 }
 
 /**
@@ -68,7 +88,12 @@ function createCommentArticle(comment) {
  * append the resulting <article> to `commentList`.
  */
 function renderComments() {
-  // ... your implementation here ...
+    commentList.innerHTML = ''; // Clear existing comments
+
+    currentComments.forEach(comment => {
+        const commentArticle = createCommentArticle(comment);
+        commentList.appendChild(commentArticle);
+    });
 }
 
 /**
@@ -85,7 +110,15 @@ function renderComments() {
  * 7. Clear the `newComment` textarea.
  */
 function handleAddComment(event) {
-  // ... your implementation here ...
+    event.preventDefault(); // Prevent default form submission
+
+    const commentText = newComment.value.trim();
+    if (!commentText) return; // Exit if the comment is empty
+
+    const newCommentObject = { author: 'Student', text: commentText };
+    currentComments.push(newCommentObject); // Add the comment to the array
+    renderComments(); // Refresh the comments
+    newComment.value = ''; // Clear the textarea
 }
 
 /**
@@ -106,7 +139,35 @@ function handleAddComment(event) {
  * 8. If the resource is not found, display an error in `resourceTitle`.
  */
 async function initializePage() {
-  // ... your implementation here ...
+    currentResourceId = getResourceIdFromURL();
+    if (!currentResourceId) {
+        resourceTitle.textContent = "Resource not found.";
+        return; // Stop execution if no ID provided
+    }
+
+    try {
+        const [resourcesResponse, commentsResponse] = await Promise.all([
+            fetch('resources.json'), 
+            fetch('resource-comments.json')
+        ]);
+
+        const resources = await resourcesResponse.json();
+        const comments = await commentsResponse.json();
+
+        const resource = resources.find(res => res.id === currentResourceId);
+        currentComments = comments[currentResourceId] || []; // Use an empty array if no comments
+
+        if (resource) {
+            renderResourceDetails(resource);
+            renderComments(); // Show initial comments
+            commentForm.addEventListener('submit', handleAddComment); // Add event listener for comments
+        } else {
+            resourceTitle.textContent = "Resource not found.";
+     }
+    } catch (error) {
+        console.error('Error loading resources or comments:', error);
+        resourceTitle.textContent = "Error loading data.";
+    }
 }
 
 // --- Initial Page Load ---
