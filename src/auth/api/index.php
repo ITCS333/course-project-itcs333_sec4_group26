@@ -1,169 +1,179 @@
 <?php
-/**
- * Authentication Handler for Login Form
- * 
- * This PHP script handles user authentication via POST requests from the Fetch API.
- * It validates credentials against a MySQL database using PDO,
- * creates sessions, and returns JSON responses.
- */
+require_once '../config/database.php';
+require_once '../config/session.php';
 
-// --- Session Management ---
-// TODO: Start a PHP session using session_start()
-// This must be called before any output is sent to the browser
-// Sessions allow us to store user data across multiple pages
-
-
-// --- Set Response Headers ---
-// TODO: Set the Content-Type header to 'application/json'
-// This tells the browser that we're sending JSON data back
-
-
-// TODO: (Optional) Set CORS headers if your frontend and backend are on different domains
-// You'll need headers for Access-Control-Allow-Origin, Methods, and Headers
-
-
-// --- Check Request Method ---
-// TODO: Verify that the request method is POST
-// Use the $_SERVER superglobal to check the REQUEST_METHOD
-// If the request is not POST, return an error response and exit
-
-
-// --- Get POST Data ---
-// TODO: Retrieve the raw POST data
-// The Fetch API sends JSON data in the request body
-// Use file_get_contents with 'php://input' to read the raw request body
-
-
-// TODO: Decode the JSON data into a PHP associative array
-// Use json_decode with the second parameter set to true
-
-
-// TODO: Extract the email and password from the decoded data
-// Check if both 'email' and 'password' keys exist in the array
-// If either is missing, return an error response and exit
-
-
-// TODO: Store the email and password in variables
-// Trim any whitespace from the email
-
-
-// --- Server-Side Validation (Optional but Recommended) ---
-// TODO: Validate the email format on the server side
-// Use the appropriate filter function for email validation
-// If invalid, return an error response and exit
-
-
-// TODO: Validate the password length (minimum 8 characters)
-// If invalid, return an error response and exit
-
-
-// --- Database Connection ---
-// TODO: Get the database connection using the provided function
-// Assume getDBConnection() returns a PDO instance with error mode set to exception
-// The function is defined elsewhere (e.g., in a config file or db.php)
-
-
-// TODO: Wrap database operations in a try-catch block to handle PDO exceptions
-// This ensures you can return a proper JSON error response if something goes wrong
-
-
-    // --- Prepare SQL Query ---
-    // TODO: Write a SQL SELECT query to find the user by email
-    // Select the following columns: id, name, email, password
-    // Use a WHERE clause to filter by email
-    // IMPORTANT: Use a placeholder (? or :email) for the email value
-    // This prevents SQL injection attacks
-
-
-    // --- Prepare the Statement ---
-    // TODO: Prepare the SQL statement using the PDO prepare method
-    // Store the result in a variable
-    // Prepared statements protect against SQL injection
-
-
-    // --- Execute the Query ---
-    // TODO: Execute the prepared statement with the email parameter
-    // Bind the email value to the placeholder
-
-
-    // --- Fetch User Data ---
-    // TODO: Fetch the user record from the database
-    // Use the fetch method with PDO::FETCH_ASSOC
-    // This returns an associative array of the user data, or false if no user found
-
-
-    // --- Verify User Exists and Password Matches ---
-    // TODO: Check if a user was found
-    // The fetch method returns false if no record matches
-
-
-    // TODO: If user exists, verify the password
-    // Use password_verify() to compare the submitted password with the hashed password from database
-    // This function returns true if they match, false otherwise
-    //
-    // NOTE: This assumes passwords are stored as hashes using password_hash()
-    // Never store passwords in plain text!
-
-
-    // --- Handle Successful Authentication ---
-    // TODO: If password verification succeeds:
-    
-    
-        // TODO: Store user information in session variables
-        // Store: user_id, user_name, user_email, logged_in
-        // DO NOT store the password in the session!
-
-
-        // TODO: Prepare a success response array
-        // Include:
-        // - 'success' => true
-        // - 'message' => 'Login successful'
-        // - 'user' => array with safe user details (id, name, email)
-        //
-        // IMPORTANT: Do NOT include the password in the response
-
-
-        // TODO: Encode the response array as JSON and echo it
-
-        
-        // TODO: Exit the script to prevent further execution
-
-
-    // --- Handle Failed Authentication ---
-    // TODO: If user doesn't exist OR password verification fails:
-    
-    
-        // TODO: Prepare an error response array
-        // Include:
-        // - 'success' => false
-        // - 'message' => 'Invalid email or password'
-        //
-        // SECURITY NOTE: Don't specify whether email or password was wrong
-        // This prevents attackers from enumerating valid email addresses
-
-
-        // TODO: Encode the error response as JSON and echo it
-        
-        
-        // TODO: Exit the script
-
-
-// TODO: Catch PDO exceptions in the catch block
-// Catch PDOException type
-
-
-    // TODO: Log the error for debugging
-    // Use error_log() to write the error message to the server error log
-    
-    
-    // TODO: Return a generic error message to the client
-    // DON'T expose database details to the user for security reasons
-    // Return a JSON response with success false and a generic message
-
-
-    // TODO: Exit the script
-
-
-// --- End of Script ---
-
+$pdo = getDBConnection();
+$stmt = $pdo->query("SELECT r.*, u.name as creator_name, (SELECT COUNT(*) FROM resource_comments WHERE resource_id = r.id) as comment_count FROM resources r LEFT JOIN users u ON r.created_by = u.id ORDER BY r.created_at DESC");
+$resources = $stmt->fetchAll();
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Resources - ITCS333</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .resource-card {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--muted-border-color);
+            border-radius: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .resource-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .badge-book_chapter { background-color: #e3f2fd; color: #1976d2; }
+        .badge-lecture_notes { background-color: #f3e5f5; color: #7b1fa2; }
+        .badge-web_link { background-color: #e8f5e9; color: #388e3c; }
+        .badge-other { background-color: #fff3e0; color: #f57c00; }
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--muted-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>ITCS333 Course</strong></li>
+        </ul>
+        <ul>
+            <li><a href="../index.php">Home</a></li>
+            <li><a href="index.php" class="active">Resources</a></li>
+            <?php if (isAdmin()) { ?>
+                <li><a href="../admin/resources.php">Manage Resources</a></li>
+            <?php } ?>
+            <li><a href="../logout.php">Logout (<?= getCurrentUserName() ?>)</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <header>
+            <h1>Course Resources</h1>
+            <p>Browse and explore course materials, lecture notes, and helpful resources.</p>
+        </header>
+
+        <?php if (empty($resources)) { ?>
+            <article>
+                <p>No resources available yet. Check back later!</p>
+            </article>
+        <?php } else { ?>
+            <!-- Filter/Search Section -->
+            <article>
+                <div class="grid">
+                    <div>
+                        <label for="search">
+                            Search Resources
+                            <input type="text" id="search" placeholder="Type to search..." onkeyup="filterResources()">
+                        </label>
+                    </div>
+                    <div>
+                        <label for="typeFilter">
+                            Filter by Type
+                            <select id="typeFilter" onchange="filterResources()">
+                                <option value="">All Types</option>
+                                <option value="book_chapter">Book Chapters</option>
+                                <option value="lecture_notes">Lecture Notes</option>
+                                <option value="web_link">Web Links</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Resources Grid -->
+            <div id="resourcesContainer">
+                <?php foreach ($resources as $resource) { ?>
+                    <article class="resource-card" 
+                             data-type="<?= $resource['resource_type'] ?>"
+                             data-title="<?= strtolower($resource['title']) ?>"
+                             data-description="<?= strtolower($resource['description']) ?>">
+                        <span class="resource-type-badge badge-<?= $resource['resource_type'] ?>">
+                            <?= ucwords(str_replace('_', ' ', $resource['resource_type'])) ?>
+                        </span>
+                        
+                        <h3>
+                            <a href="view.php?id=<?= $resource['id'] ?>">
+                                <?= $resource['title'] ?>
+                            </a>
+                        </h3>
+                        
+                        <p><?= $resource['description'] ?></p>
+                        
+                        <?php if ($resource['resource_url']) { ?>
+                            <p>
+                                <a href="<?= $resource['resource_url'] ?>" target="_blank" rel="noopener">
+                                    Access Resource
+                                </a>
+                            </p>
+                        <?php } ?>
+                        
+                        <div class="stats">
+                            <span><?= $resource['comment_count'] ?> comment(s)</span>
+                            <span><?= date('M d, Y', strtotime($resource['created_at'])) ?></span>
+                            <span>By: <?= $resource['creator_name'] ?></span>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;">
+                            <a href="view.php?id=<?= $resource['id'] ?>" role="button">View Details & Discuss</a>
+                        </div>
+                    </article>
+                <?php } ?>
+            </div>
+
+            <div id="noResults" style="display: none;">
+                <article>
+                    <p>No resources found matching your criteria.</p>
+                </article>
+            </div>
+        <?php } ?>
+    </main>
+
+    <footer class="container">
+        <small>ITCS333 - Internet Software Development | Total Resources: <?= count($resources) ?></small>
+    </footer>
+
+    <script>
+        function filterResources() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const cards = document.querySelectorAll('.resource-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                const description = card.getAttribute('data-description');
+                const type = card.getAttribute('data-type');
+                
+                const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+                const matchesType = !typeFilter || type === typeFilter;
+                
+                if (matchesSearch && matchesType) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
