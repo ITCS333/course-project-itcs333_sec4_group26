@@ -17,8 +17,10 @@ let resources = [];
 
 // --- Element Selections ---
 // TODO: Select the resource form ('#resource-form').
+const resourceForm = document.querySelector('#resource-form');
 
 // TODO: Select the resources table body ('#resources-tbody').
+const resourcesTableBody = document.querySelector('#resources-tbody');
 
 // --- Functions ---
 
@@ -33,7 +35,39 @@ let resources = [];
  * - A "Delete" button with class "delete-btn" and `data-id="${id}"`.
  */
 function createResourceRow(resource) {
-  // ... your implementation here ...
+  const row = document.createElement('tr');
+
+  // Add title cell
+    const titleCell = document.createElement('td');
+    titleCell.textContent = resource.title;
+    row.appendChild(titleCell);
+    
+    // Add description cell
+    const descriptionCell = document.createElement('td');
+    descriptionCell.textContent = resource.description;
+    row.appendChild(descriptionCell);
+    
+    // Add actions cell
+    const actionsCell = document.createElement('td');
+    
+    // Edit button
+    const editButton = document.createElement('button');
+    editButton.textContent = 'Edit';
+    editButton.className = 'edit-btn';
+    editButton.dataset.id = resource.id; // Use data attribute for identification
+    actionsCell.appendChild(editButton);
+
+     // Delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.className = 'delete-btn';
+    deleteButton.dataset.id = resource.id; // Use data attribute for identification
+    actionsCell.appendChild(deleteButton);
+    
+    row.appendChild(actionsCell);
+    
+    return row;
+  
 }
 
 /**
@@ -45,7 +79,16 @@ function createResourceRow(resource) {
  * append the resulting <tr> to `resourcesTableBody`.
  */
 function renderTable() {
-  // ... your implementation here ...
+
+     // Clear the resourcesTableBody
+    resourcesTableBody.innerHTML = '';
+    
+    // Loop through the global `resources` array
+    resources.forEach(resource => {
+        const row = createResourceRow(resource);
+        resourcesTableBody.appendChild(row); // Append the new row to the table body
+    });
+ 
 }
 
 /**
@@ -60,7 +103,31 @@ function renderTable() {
  * 6. Reset the form.
  */
 function handleAddResource(event) {
-  // ... your implementation here ...
+   // Prevent the form's default submission
+   event.preventDefault();
+
+   // Get values from the inputs
+    const title = document.querySelector('#resource-title').value;
+    const description = document.querySelector('#resource-description').value;
+    const link = document.querySelector('#resource-link').value; // Not used, but can be incorporated later
+
+    // Create a new resource object with a unique ID
+    const newResource = {
+        id: `res_${Date.now()}`,
+        title,
+        description,
+        link
+    };
+
+    // Add the new resource object to the global array
+    resources.push(newResource);
+
+    // Render the updated table
+    renderTable();
+
+    // Reset the form
+    resourceForm.reset();
+  
 }
 
 /**
@@ -74,7 +141,16 @@ function handleAddResource(event) {
  * 4. Call `renderTable()` to refresh the list.
  */
 function handleTableClick(event) {
-  // ... your implementation here ...
+      if (event.target.classList.contains('delete-btn')) {
+        const id = event.target.dataset.id; // Get the resource ID
+
+        // Update the global resources array by filtering out the resource
+        resources = resources.filter(resource => resource.id !== id);
+        
+        // Render the updated table
+        renderTable();
+    }
+
 }
 
 /**
@@ -88,7 +164,17 @@ function handleTableClick(event) {
  * 5. Add the 'click' event listener to `resourcesTableBody` (calls `handleTableClick`).
  */
 async function loadAndInitialize() {
-  // ... your implementation here ...
+   try {
+        const response = await fetch('resources.json'); // Fetch data from resources.json
+        resources = await response.json(); // Parse the JSON response and store it in the global array
+        renderTable(); // Populate the table for the first time
+        
+        // Add event listeners
+        resourceForm.addEventListener('submit', handleAddResource); // Listen for form submission
+        resourcesTableBody.addEventListener('click', handleTableClick); // Listen for clicks on the resource table
+    } catch (error) {
+        console.error('Error loading resources:', error);
+    }
 }
 
 // --- Initial Page Load ---
