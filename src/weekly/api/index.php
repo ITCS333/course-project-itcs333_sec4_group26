@@ -1,542 +1,390 @@
 <?php
 /**
- * Weekly Course Breakdown API
- * 
- * This is a RESTful API that handles all CRUD operations for weekly course content
- * and discussion comments. It uses PDO to interact with a MySQL database.
- * 
- * Database Table Structures (for reference):
- * 
- * Table: weeks
- * Columns:
- *   - id (INT, PRIMARY KEY, AUTO_INCREMENT)
- *   - week_id (VARCHAR(50), UNIQUE) - Unique identifier (e.g., "week_1")
- *   - title (VARCHAR(200))
- *   - start_date (DATE)
- *   - description (TEXT)
- *   - links (TEXT) - JSON encoded array of links
- *   - created_at (TIMESTAMP)
- *   - updated_at (TIMESTAMP)
- * 
- * Table: comments
- * Columns:
- *   - id (INT, PRIMARY KEY, AUTO_INCREMENT)
- *   - week_id (VARCHAR(50)) - Foreign key reference to weeks.week_id
- *   - author (VARCHAR(100))
- *   - text (TEXT)
- *   - created_at (TIMESTAMP)
- * 
- * HTTP Methods Supported:
- *   - GET: Retrieve week(s) or comment(s)
- *   - POST: Create a new week or comment
- *   - PUT: Update an existing week
- *   - DELETE: Delete a week or comment
- * 
- * Response Format: JSON
+ * Weekly Course Breakdown API (JSON-backed)
+ *
+ * This implements CRUD for weeks and comments using weeks.json and comments.json.
+ * It exposes a simple RESTful interface:
+ *   - GET /index.php?resource=weeks
+ *   - GET /index.php?resource=weeks&week_id=week_1
+ *   - POST /index.php?resource=weeks  (JSON body)
+ *   - PUT /index.php?resource=weeks   (JSON body)
+ *   - DELETE /index.php?resource=weeks&week_id=week_1
+ *
+ *   - GET /index.php?resource=comments&week_id=week_1
+ *   - POST /index.php?resource=comments (JSON body)
+ *   - DELETE /index.php?resource=comments&id=3
  */
 
-// ============================================================================
-// SETUP AND CONFIGURATION
-// ============================================================================
+// -----------------------------------------------------------------------------
+// HEADERS / CORS / PRE-FLIGHT
+// -----------------------------------------------------------------------------
+header('Content-Type: application/json; charset=utf-8');
 
-// TODO: Set headers for JSON response and CORS
-// Set Content-Type to application/json
-// Allow cross-origin requests (CORS) if needed
-// Allow specific HTTP methods (GET, POST, PUT, DELETE, OPTIONS)
-// Allow specific headers (Content-Type, Authorization)
+// Allow CORS for development (adjust origins as needed for production)
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+} else {
+    header("Access-Control-Allow-Origin: *");
+}
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-
-// TODO: Handle preflight OPTIONS request
-// If the request method is OPTIONS, return 200 status and exit
-
-
-// TODO: Include the database connection class
-// Assume the Database class has a method getConnection() that returns a PDO instance
-// Example: require_once '../config/Database.php';
-
-
-// TODO: Get the PDO database connection
-// Example: $database = new Database();
-//          $db = $database->getConnection();
-
-
-// TODO: Get the HTTP request method
-// Use $_SERVER['REQUEST_METHOD']
-
-
-// TODO: Get the request body for POST and PUT requests
-// Use file_get_contents('php://input') to get raw POST data
-// Decode JSON data using json_decode()
-
-
-// TODO: Parse query parameters
-// Get the 'resource' parameter to determine if request is for weeks or comments
-// Example: ?resource=weeks or ?resource=comments
-
-
-// ============================================================================
-// WEEKS CRUD OPERATIONS
-// ============================================================================
-
-/**
- * Function: Get all weeks or search for specific weeks
- * Method: GET
- * Resource: weeks
- * 
- * Query Parameters:
- *   - search: Optional search term to filter by title or description
- *   - sort: Optional field to sort by (title, start_date)
- *   - order: Optional sort order (asc or desc, default: asc)
- */
-function getAllWeeks($db) {
-    // TODO: Initialize variables for search, sort, and order from query parameters
-    
-    // TODO: Start building the SQL query
-    // Base query: SELECT week_id, title, start_date, description, links, created_at FROM weeks
-    
-    // TODO: Check if search parameter exists
-    // If yes, add WHERE clause using LIKE for title and description
-    // Example: WHERE title LIKE ? OR description LIKE ?
-    
-    // TODO: Check if sort parameter exists
-    // Validate sort field to prevent SQL injection (only allow: title, start_date, created_at)
-    // If invalid, use default sort field (start_date)
-    
-    // TODO: Check if order parameter exists
-    // Validate order to prevent SQL injection (only allow: asc, desc)
-    // If invalid, use default order (asc)
-    
-    // TODO: Add ORDER BY clause to the query
-    
-    // TODO: Prepare the SQL query using PDO
-    
-    // TODO: Bind parameters if using search
-    // Use wildcards for LIKE: "%{$searchTerm}%"
-    
-    // TODO: Execute the query
-    
-    // TODO: Fetch all results as an associative array
-    
-    // TODO: Process each week's links field
-    // Decode the JSON string back to an array using json_decode()
-    
-    // TODO: Return JSON response with success status and data
-    // Use sendResponse() helper function
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
 }
 
+// -----------------------------------------------------------------------------
+// CONFIG: JSON file paths
+// -----------------------------------------------------------------------------
+define('WEEKS_FILE', __DIR__ . '/weeks.json');
+define('COMMENTS_FILE', __DIR__ . '/comments.json');
 
-/**
- * Function: Get a single week by week_id
- * Method: GET
- * Resource: weeks
- * 
- * Query Parameters:
- *   - week_id: The unique week identifier (e.g., "week_1")
- */
-function getWeekById($db, $weekId) {
-    // TODO: Validate that week_id is provided
-    // If not, return error response with 400 status
-    
-    // TODO: Prepare SQL query to select week by week_id
-    // SELECT week_id, title, start_date, description, links, created_at FROM weeks WHERE week_id = ?
-    
-    // TODO: Bind the week_id parameter
-    
-    // TODO: Execute the query
-    
-    // TODO: Fetch the result
-    
-    // TODO: Check if week exists
-    // If yes, decode the links JSON and return success response with week data
-    // If no, return error response with 404 status
+// Ensure files exist
+if (!file_exists(WEEKS_FILE)) file_put_contents(WEEKS_FILE, json_encode([], JSON_PRETTY_PRINT));
+if (!file_exists(COMMENTS_FILE)) file_put_contents(COMMENTS_FILE, json_encode([], JSON_PRETTY_PRINT));
+
+// -----------------------------------------------------------------------------
+// UTILITIES: load/save JSON with locking
+// -----------------------------------------------------------------------------
+function loadJsonFile($path) {
+    $json = @file_get_contents($path);
+    if ($json === false) return [];
+    $data = json_decode($json, true);
+    return $data === null ? [] : $data;
 }
 
-
-/**
- * Function: Create a new week
- * Method: POST
- * Resource: weeks
- * 
- * Required JSON Body:
- *   - week_id: Unique week identifier (e.g., "week_1")
- *   - title: Week title (e.g., "Week 1: Introduction to HTML")
- *   - start_date: Start date in YYYY-MM-DD format
- *   - description: Week description
- *   - links: Array of resource links (will be JSON encoded)
- */
-function createWeek($db, $data) {
-    // TODO: Validate required fields
-    // Check if week_id, title, start_date, and description are provided
-    // If any field is missing, return error response with 400 status
-    
-    // TODO: Sanitize input data
-    // Trim whitespace from title, description, and week_id
-    
-    // TODO: Validate start_date format
-    // Use a regex or DateTime::createFromFormat() to verify YYYY-MM-DD format
-    // If invalid, return error response with 400 status
-    
-    // TODO: Check if week_id already exists
-    // Prepare and execute a SELECT query to check for duplicates
-    // If duplicate found, return error response with 409 status (Conflict)
-    
-    // TODO: Handle links array
-    // If links is provided and is an array, encode it to JSON using json_encode()
-    // If links is not provided, use an empty array []
-    
-    // TODO: Prepare INSERT query
-    // INSERT INTO weeks (week_id, title, start_date, description, links) VALUES (?, ?, ?, ?, ?)
-    
-    // TODO: Bind parameters
-    
-    // TODO: Execute the query
-    
-    // TODO: Check if insert was successful
-    // If yes, return success response with 201 status (Created) and the new week data
-    // If no, return error response with 500 status
+function saveJsonFile($path, $data) {
+    $tmp = $path . '.tmp';
+    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    // atomic write with rename
+    file_put_contents($tmp, $json, LOCK_EX);
+    rename($tmp, $path);
+    return true;
 }
 
-
-/**
- * Function: Update an existing week
- * Method: PUT
- * Resource: weeks
- * 
- * Required JSON Body:
- *   - week_id: The week identifier (to identify which week to update)
- *   - title: Updated week title (optional)
- *   - start_date: Updated start date (optional)
- *   - description: Updated description (optional)
- *   - links: Updated array of links (optional)
- */
-function updateWeek($db, $data) {
-    // TODO: Validate that week_id is provided
-    // If not, return error response with 400 status
-    
-    // TODO: Check if week exists
-    // Prepare and execute a SELECT query to find the week
-    // If not found, return error response with 404 status
-    
-    // TODO: Build UPDATE query dynamically based on provided fields
-    // Initialize an array to hold SET clauses
-    // Initialize an array to hold values for binding
-    
-    // TODO: Check which fields are provided and add to SET clauses
-    // If title is provided, add "title = ?"
-    // If start_date is provided, validate format and add "start_date = ?"
-    // If description is provided, add "description = ?"
-    // If links is provided, encode to JSON and add "links = ?"
-    
-    // TODO: If no fields to update, return error response with 400 status
-    
-    // TODO: Add updated_at timestamp to SET clauses
-    // Add "updated_at = CURRENT_TIMESTAMP"
-    
-    // TODO: Build the complete UPDATE query
-    // UPDATE weeks SET [clauses] WHERE week_id = ?
-    
-    // TODO: Prepare the query
-    
-    // TODO: Bind parameters dynamically
-    // Bind values array and then bind week_id at the end
-    
-    // TODO: Execute the query
-    
-    // TODO: Check if update was successful
-    // If yes, return success response with updated week data
-    // If no, return error response with 500 status
-}
-
-
-/**
- * Function: Delete a week
- * Method: DELETE
- * Resource: weeks
- * 
- * Query Parameters or JSON Body:
- *   - week_id: The week identifier
- */
-function deleteWeek($db, $weekId) {
-    // TODO: Validate that week_id is provided
-    // If not, return error response with 400 status
-    
-    // TODO: Check if week exists
-    // Prepare and execute a SELECT query
-    // If not found, return error response with 404 status
-    
-    // TODO: Delete associated comments first (to maintain referential integrity)
-    // Prepare DELETE query for comments table
-    // DELETE FROM comments WHERE week_id = ?
-    
-    // TODO: Execute comment deletion query
-    
-    // TODO: Prepare DELETE query for week
-    // DELETE FROM weeks WHERE week_id = ?
-    
-    // TODO: Bind the week_id parameter
-    
-    // TODO: Execute the query
-    
-    // TODO: Check if delete was successful
-    // If yes, return success response with message indicating week and comments deleted
-    // If no, return error response with 500 status
-}
-
-
-// ============================================================================
-// COMMENTS CRUD OPERATIONS
-// ============================================================================
-
-/**
- * Function: Get all comments for a specific week
- * Method: GET
- * Resource: comments
- * 
- * Query Parameters:
- *   - week_id: The week identifier to get comments for
- */
-function getCommentsByWeek($db, $weekId) {
-    // TODO: Validate that week_id is provided
-    // If not, return error response with 400 status
-    
-    // TODO: Prepare SQL query to select comments for the week
-    // SELECT id, week_id, author, text, created_at FROM comments WHERE week_id = ? ORDER BY created_at ASC
-    
-    // TODO: Bind the week_id parameter
-    
-    // TODO: Execute the query
-    
-    // TODO: Fetch all results as an associative array
-    
-    // TODO: Return JSON response with success status and data
-    // Even if no comments exist, return an empty array
-}
-
-
-/**
- * Function: Create a new comment
- * Method: POST
- * Resource: comments
- * 
- * Required JSON Body:
- *   - week_id: The week identifier this comment belongs to
- *   - author: Comment author name
- *   - text: Comment text content
- */
-function createComment($db, $data) {
-    // TODO: Validate required fields
-    // Check if week_id, author, and text are provided
-    // If any field is missing, return error response with 400 status
-    
-    // TODO: Sanitize input data
-    // Trim whitespace from all fields
-    
-    // TODO: Validate that text is not empty after trimming
-    // If empty, return error response with 400 status
-    
-    // TODO: Check if the week exists
-    // Prepare and execute a SELECT query on weeks table
-    // If week not found, return error response with 404 status
-    
-    // TODO: Prepare INSERT query
-    // INSERT INTO comments (week_id, author, text) VALUES (?, ?, ?)
-    
-    // TODO: Bind parameters
-    
-    // TODO: Execute the query
-    
-    // TODO: Check if insert was successful
-    // If yes, get the last insert ID and return success response with 201 status
-    // Include the new comment data in the response
-    // If no, return error response with 500 status
-}
-
-
-/**
- * Function: Delete a comment
- * Method: DELETE
- * Resource: comments
- * 
- * Query Parameters or JSON Body:
- *   - id: The comment ID to delete
- */
-function deleteComment($db, $commentId) {
-    // TODO: Validate that id is provided
-    // If not, return error response with 400 status
-    
-    // TODO: Check if comment exists
-    // Prepare and execute a SELECT query
-    // If not found, return error response with 404 status
-    
-    // TODO: Prepare DELETE query
-    // DELETE FROM comments WHERE id = ?
-    
-    // TODO: Bind the id parameter
-    
-    // TODO: Execute the query
-    
-    // TODO: Check if delete was successful
-    // If yes, return success response
-    // If no, return error response with 500 status
-}
-
-
-// ============================================================================
-// MAIN REQUEST ROUTER
-// ============================================================================
-
-try {
-    // TODO: Determine the resource type from query parameters
-    // Get 'resource' parameter (?resource=weeks or ?resource=comments)
-    // If not provided, default to 'weeks'
-    
-    
-    // Route based on resource type and HTTP method
-    
-    // ========== WEEKS ROUTES ==========
-    if ($resource === 'weeks') {
-        
-        if ($method === 'GET') {
-            // TODO: Check if week_id is provided in query parameters
-            // If yes, call getWeekById()
-            // If no, call getAllWeeks() to get all weeks (with optional search/sort)
-            
-        } elseif ($method === 'POST') {
-            // TODO: Call createWeek() with the decoded request body
-            
-        } elseif ($method === 'PUT') {
-            // TODO: Call updateWeek() with the decoded request body
-            
-        } elseif ($method === 'DELETE') {
-            // TODO: Get week_id from query parameter or request body
-            // Call deleteWeek()
-            
-        } else {
-            // TODO: Return error for unsupported methods
-            // Set HTTP status to 405 (Method Not Allowed)
-        }
-    }
-    
-    // ========== COMMENTS ROUTES ==========
-    elseif ($resource === 'comments') {
-        
-        if ($method === 'GET') {
-            // TODO: Get week_id from query parameters
-            // Call getCommentsByWeek()
-            
-        } elseif ($method === 'POST') {
-            // TODO: Call createComment() with the decoded request body
-            
-        } elseif ($method === 'DELETE') {
-            // TODO: Get comment id from query parameter or request body
-            // Call deleteComment()
-            
-        } else {
-            // TODO: Return error for unsupported methods
-            // Set HTTP status to 405 (Method Not Allowed)
-        }
-    }
-    
-    // ========== INVALID RESOURCE ==========
-    else {
-        // TODO: Return error for invalid resource
-        // Set HTTP status to 400 (Bad Request)
-        // Return JSON error message: "Invalid resource. Use 'weeks' or 'comments'"
-    }
-    
-} catch (PDOException $e) {
-    // TODO: Handle database errors
-    // Log the error message (optional, for debugging)
-    // error_log($e->getMessage());
-    
-    // TODO: Return generic error response with 500 status
-    // Do NOT expose database error details to the client
-    // Return message: "Database error occurred"
-    
-} catch (Exception $e) {
-    // TODO: Handle general errors
-    // Log the error message (optional)
-    // Return error response with 500 status
-}
-
-
-// ============================================================================
+// -----------------------------------------------------------------------------
 // HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Helper function to send JSON response
- * 
- * @param mixed $data - Data to send (will be JSON encoded)
- * @param int $statusCode - HTTP status code (default: 200)
- */
+// -----------------------------------------------------------------------------
 function sendResponse($data, $statusCode = 200) {
-    // TODO: Set HTTP response code
-    // Use http_response_code($statusCode)
-    
-    // TODO: Echo JSON encoded data
-    // Use json_encode($data)
-    
-    // TODO: Exit to prevent further execution
+    http_response_code($statusCode);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-
-/**
- * Helper function to send error response
- * 
- * @param string $message - Error message
- * @param int $statusCode - HTTP status code
- */
 function sendError($message, $statusCode = 400) {
-    // TODO: Create error response array
-    // Structure: ['success' => false, 'error' => $message]
-    
-    // TODO: Call sendResponse() with the error array and status code
+    sendResponse(['success' => false, 'error' => $message], $statusCode);
 }
 
-
-/**
- * Helper function to validate date format (YYYY-MM-DD)
- * 
- * @param string $date - Date string to validate
- * @return bool - True if valid, false otherwise
- */
-function validateDate($date) {
-    // TODO: Use DateTime::createFromFormat() to validate
-    // Format: 'Y-m-d'
-    // Check that the created date matches the input string
-    // Return true if valid, false otherwise
+function validateDateStr($date) {
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') === $date;
 }
 
-
-/**
- * Helper function to sanitize input
- * 
- * @param string $data - Data to sanitize
- * @return string - Sanitized data
- */
-function sanitizeInput($data) {
-    // TODO: Trim whitespace
-    
-    // TODO: Strip HTML tags using strip_tags()
-    
-    // TODO: Convert special characters using htmlspecialchars()
-    
-    // TODO: Return sanitized data
+function sanitizeInput($val) {
+    if (is_array($val)) {
+        return array_map('sanitizeInput', $val);
+    }
+    $v = trim($val);
+    $v = strip_tags($v);
+    return htmlspecialchars($v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-
-/**
- * Helper function to validate allowed sort fields
- * 
- * @param string $field - Field name to validate
- * @param array $allowedFields - Array of allowed field names
- * @return bool - True if valid, false otherwise
- */
-function isValidSortField($field, $allowedFields) {
-    // TODO: Check if $field exists in $allowedFields array
-    // Use in_array()
-    // Return true if valid, false otherwise
+function isValidSortField($field, $allowed) {
+    return in_array($field, $allowed, true);
 }
 
-?>
+// -----------------------------------------------------------------------------
+// REQUEST PARSING
+// -----------------------------------------------------------------------------
+$method = $_SERVER['REQUEST_METHOD'];
+$rawBody = file_get_contents('php://input');
+$body = json_decode($rawBody, true) ?? [];
+
+$resource = isset($_GET['resource']) ? $_GET['resource'] : ($body['resource'] ?? 'weeks');
+
+// -----------------------------------------------------------------------------
+// WEEKS OPERATIONS (JSON-backed)
+// -----------------------------------------------------------------------------
+function getAllWeeksHandler() {
+    $weeks = loadJsonFile(WEEKS_FILE);
+
+    // Query params: search, sort, order
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $sort = isset($_GET['sort']) ? $_GET['sort'] : 'startDate';
+    $order = isset($_GET['order']) ? strtolower($_GET['order']) : 'asc';
+
+    // Filter by search (title or description)
+    if ($search !== '') {
+        $s = mb_strtolower($search);
+        $weeks = array_filter($weeks, function ($w) use ($s) {
+            $title = isset($w['title']) ? mb_strtolower($w['title']) : '';
+            $desc = isset($w['description']) ? mb_strtolower($w['description']) : '';
+            return mb_strpos($title, $s) !== false || mb_strpos($desc, $s) !== false;
+        });
+        // reindex
+        $weeks = array_values($weeks);
+    }
+
+    // Sort: only allow certain fields
+    $allowedSort = ['title', 'startDate', 'id'];
+    if (!isValidSortField($sort, $allowedSort)) $sort = 'startDate';
+    usort($weeks, function ($a, $b) use ($sort, $order) {
+        $va = $a[$sort] ?? '';
+        $vb = $b[$sort] ?? '';
+        if ($va == $vb) return 0;
+        if ($order === 'desc') return ($va < $vb) ? 1 : -1;
+        return ($va < $vb) ? -1 : 1;
+    });
+
+    // ensure links are arrays
+    foreach ($weeks as &$w) {
+        if (!isset($w['links']) || !is_array($w['links'])) $w['links'] = [];
+    }
+    unset($w);
+
+    sendResponse(['success' => true, 'data' => $weeks]);
+}
+
+function getWeekByIdHandler($weekId) {
+    if (!$weekId) sendError('week_id is required', 400);
+    $weeks = loadJsonFile(WEEKS_FILE);
+    foreach ($weeks as $w) {
+        if (($w['id'] ?? '') === $weekId) {
+            if (!isset($w['links']) || !is_array($w['links'])) $w['links'] = [];
+            sendResponse(['success' => true, 'data' => $w]);
+        }
+    }
+    sendError('Week not found', 404);
+}
+
+function createWeekHandler($data) {
+    // required: id, title, startDate, description
+    $id = $data['id'] ?? '';
+    $title = $data['title'] ?? '';
+    $startDate = $data['startDate'] ?? '';
+    $description = $data['description'] ?? '';
+    $links = $data['links'] ?? [];
+
+    $id = sanitizeInput($id);
+    $title = sanitizeInput($title);
+    $startDate = sanitizeInput($startDate);
+    $description = sanitizeInput($description);
+    $links = is_array($links) ? array_map('sanitizeInput', $links) : [];
+
+    if ($id === '' || $title === '' || $startDate === '' || $description === '') {
+        sendError('Missing required fields: id, title, startDate, description', 400);
+    }
+
+    if (!validateDateStr($startDate)) {
+        sendError('Invalid startDate format. Use YYYY-MM-DD', 400);
+    }
+
+    $weeks = loadJsonFile(WEEKS_FILE);
+    // check duplicate id
+    foreach ($weeks as $w) {
+        if (($w['id'] ?? '') === $id) sendError('week_id already exists', 409);
+    }
+
+    $newWeek = [
+        'id' => $id,
+        'title' => $title,
+        'startDate' => $startDate,
+        'description' => $description,
+        'links' => array_values($links),
+    ];
+    $weeks[] = $newWeek;
+    saveJsonFile(WEEKS_FILE, $weeks);
+    sendResponse(['success' => true, 'data' => $newWeek], 201);
+}
+
+function updateWeekHandler($data) {
+    $weekId = $data['id'] ?? '';
+    if (!$weekId) sendError('week_id (id) required in body', 400);
+
+    $weeks = loadJsonFile(WEEKS_FILE);
+    $found = false;
+    foreach ($weeks as &$w) {
+        if (($w['id'] ?? '') === $weekId) {
+            $found = true;
+            // update allowed fields if provided
+            if (isset($data['title'])) $w['title'] = sanitizeInput($data['title']);
+            if (isset($data['startDate'])) {
+                if (!validateDateStr($data['startDate'])) sendError('Invalid startDate format', 400);
+                $w['startDate'] = sanitizeInput($data['startDate']);
+            }
+            if (isset($data['description'])) $w['description'] = sanitizeInput($data['description']);
+            if (isset($data['links']) && is_array($data['links'])) $w['links'] = array_map('sanitizeInput', $data['links']);
+            // done; break
+            break;
+        }
+    }
+    unset($w);
+
+    if (!$found) sendError('Week not found', 404);
+
+    saveJsonFile(WEEKS_FILE, $weeks);
+    // return updated resource
+    foreach ($weeks as $w) {
+        if ($w['id'] === $weekId) {
+            sendResponse(['success' => true, 'data' => $w]);
+        }
+    }
+    sendError('Unexpected error updating week', 500);
+}
+
+function deleteWeekHandler($weekId) {
+    if (!$weekId) sendError('week_id is required', 400);
+    $weeks = loadJsonFile(WEEKS_FILE);
+    $newWeeks = [];
+    $found = false;
+    foreach ($weeks as $w) {
+        if (($w['id'] ?? '') === $weekId) {
+            $found = true;
+            continue;
+        }
+        $newWeeks[] = $w;
+    }
+    if (!$found) sendError('Week not found', 404);
+
+    // delete associated comments
+    $comments = loadJsonFile(COMMENTS_FILE);
+    $comments = array_filter($comments, function ($c) use ($weekId) {
+        return ($c['week_id'] ?? '') !== $weekId;
+    });
+    $comments = array_values($comments);
+
+    saveJsonFile(WEEKS_FILE, array_values($newWeeks));
+    saveJsonFile(COMMENTS_FILE, $comments);
+
+    sendResponse(['success' => true, 'message' => "Week '{$weekId}' and its comments deleted"]);
+}
+
+// -----------------------------------------------------------------------------
+// COMMENTS OPERATIONS (JSON-backed)
+// -----------------------------------------------------------------------------
+function getCommentsByWeekHandler($weekId) {
+    if (!$weekId) sendError('week_id is required', 400);
+    $comments = loadJsonFile(COMMENTS_FILE);
+    $result = array_filter($comments, function ($c) use ($weekId) {
+        return isset($c['week_id']) && $c['week_id'] === $weekId;
+    });
+    // sort by created_at if present
+    usort($result, function ($a, $b) {
+        $ta = $a['created_at'] ?? '';
+        $tb = $b['created_at'] ?? '';
+        return strcmp($ta, $tb);
+    });
+    sendResponse(['success' => true, 'data' => array_values($result)]);
+}
+
+function createCommentHandler($data) {
+    $weekId = $data['week_id'] ?? '';
+    $author = $data['author'] ?? '';
+    $text = $data['text'] ?? '';
+
+    $weekId = sanitizeInput($weekId);
+    $author = sanitizeInput($author);
+    $text = sanitizeInput($text);
+
+    if ($weekId === '' || $author === '' || $text === '') {
+        sendError('Missing required fields: week_id, author, text', 400);
+    }
+
+    // verify week exists
+    $weeks = loadJsonFile(WEEKS_FILE);
+    $exists = false;
+    foreach ($weeks as $w) {
+        if (($w['id'] ?? '') === $weekId) { $exists = true; break; }
+    }
+    if (!$exists) sendError('Week not found', 404);
+
+    $comments = loadJsonFile(COMMENTS_FILE);
+
+    // generate an auto-increment id for comment (numeric)
+    $maxId = 0;
+    foreach ($comments as $c) {
+        $cid = intval($c['id'] ?? 0);
+        if ($cid > $maxId) $maxId = $cid;
+    }
+    $newId = $maxId + 1;
+
+    $newComment = [
+        'id' => $newId,
+        'week_id' => $weekId,
+        'author' => $author,
+        'text' => $text,
+        'created_at' => (new DateTime())->format(DateTime::ATOM)
+    ];
+
+    $comments[] = $newComment;
+    saveJsonFile(COMMENTS_FILE, $comments);
+
+    sendResponse(['success' => true, 'data' => $newComment], 201);
+}
+
+function deleteCommentHandler($commentId) {
+    if (!$commentId) sendError('comment id is required', 400);
+    $comments = loadJsonFile(COMMENTS_FILE);
+    $found = false;
+    $new = [];
+    foreach ($comments as $c) {
+        if ((string)($c['id'] ?? '') === (string)$commentId) {
+            $found = true;
+            continue;
+        }
+        $new[] = $c;
+    }
+    if (!$found) sendError('Comment not found', 404);
+    saveJsonFile(COMMENTS_FILE, array_values($new));
+    sendResponse(['success' => true, 'message' => 'Comment deleted']);
+}
+
+// -----------------------------------------------------------------------------
+// MAIN ROUTING
+// -----------------------------------------------------------------------------
+try {
+    $resource = strtolower($resource);
+
+    if ($resource === 'weeks') {
+        if ($method === 'GET') {
+            $weekId = $_GET['week_id'] ?? null;
+            if ($weekId) {
+                getWeekByIdHandler($weekId);
+            } else {
+                getAllWeeksHandler();
+            }
+        } elseif ($method === 'POST') {
+            // create new week
+            createWeekHandler($body);
+        } elseif ($method === 'PUT' || $method === 'PATCH') {
+            // update week - body must include "id" field
+            updateWeekHandler($body);
+        } elseif ($method === 'DELETE') {
+            $weekId = $_GET['week_id'] ?? ($body['id'] ?? null);
+            deleteWeekHandler($weekId);
+        } else {
+            sendError('Method Not Allowed', 405);
+        }
+    } elseif ($resource === 'comments') {
+        if ($method === 'GET') {
+            $weekId = $_GET['week_id'] ?? null;
+            if (!$weekId) sendError('week_id parameter is required', 400);
+            getCommentsByWeekHandler($weekId);
+        } elseif ($method === 'POST') {
+            createCommentHandler($body);
+        } elseif ($method === 'DELETE') {
+            $commentId = $_GET['id'] ?? ($body['id'] ?? null);
+            deleteCommentHandler($commentId);
+        } else {
+            sendError('Method Not Allowed', 405);
+        }
+    } else {
+        sendError("Invalid resource. Use 'weeks' or 'comments'", 400);
+    }
+} catch (Exception $e) {
+    // Log server-side error for debugging (file-based)
+    error_log($e->getMessage());
+    sendError('Server error occurred', 500);
+}
