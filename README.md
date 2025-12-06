@@ -2,8 +2,16 @@
 [![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=21592314&assignment_repo_type=AssignmentRepo)
 # ITCS333 SEC4 GROUP26
 
-## The names and student IDs of all team members.
+## GROUP MEMBERS:
+YUSRA HAJI 202009756
+Manar Mohamed 20195713
+Ayesha Zulfiqar 20183459
 
-## A table indicating which student was responsible for which task.
+## TASK DISTRIBUTION:
+TASK 1:Manar Mohamed 20195713
+TASK 2:YUSRA HAJI 202009756
+TASK 3:Ayesha Zulfiqar 20183459
+TASK 4:
+TASK 5:
 
 ## A link to your live, hosted application on Replit.
