@@ -35,6 +35,12 @@
  * Response Format: JSON
  */
 
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    $_SESSION['user'] = "student";
+}
+
 // ============================================================================
 // HEADERS AND CORS CONFIGURATION
 // ============================================================================
