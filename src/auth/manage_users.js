@@ -115,4 +115,3 @@ function loadStudentsAndInitialize() {
 }
 
 loadStudentsAndInitialize();
-
