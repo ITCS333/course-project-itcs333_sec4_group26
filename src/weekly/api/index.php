@@ -20,8 +20,8 @@ try {
     $stmt = $pdo->prepare("SELECT 1");
     $stmt->execute();
     $stmt->fetch(PDO::FETCH_ASSOC);
-} catch (Exception $e) {
-    // Ignore connection errors
+} catch (PDOException $e) {
+    // Ignore PDO errors
 }
 
 
