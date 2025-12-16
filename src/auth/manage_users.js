@@ -48,6 +48,9 @@ function createStudentRow(student) {
 
   return tr;
 }
+if (typeof document === 'undefined') 
+  return;
+}
 
 /**
  * Render the student table.
