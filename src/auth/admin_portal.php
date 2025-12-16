@@ -1,14 +1,10 @@
 <?php
-/**
- * Admin Portal
- * Accessible only to admin users for managing students and changing password
- */
+session_start(); 
+
 
 require_once 'config.php';
 
-
 requireAdmin();
-
 
 try {
     $db = getDBConnection();
@@ -19,7 +15,6 @@ try {
     error_log('Error fetching students: ' . $e->getMessage());
     $students = [];
 }
-
 
 $passwordMessage = '';
 $passwordError = '';
@@ -70,77 +65,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <script src="admin_portal.js" defer></script>
     <style>
-        .header-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        .header-nav h1 {
-            margin: 0;
-        }
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            border: 1px solid #c3e6cb;
-        }
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            border: 1px solid #f5c6cb;
-        }
-        table {
-            width: 100%;
-            margin-top: 1rem;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .action-buttons button {
-            margin: 0;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-        .edit-btn {
-            background-color: #007bff;
-        }
-        .delete-btn {
-            background-color: #dc3545;
-        }
-        details {
-            margin: 1.5rem 0;
-        }
-        summary {
-            cursor: pointer;
-            font-weight: bold;
-            padding: 0.75rem;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 4px;
-        }
-        summary:hover {
-            opacity: 0.9;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .user-info span {
-            font-weight: bold;
-        }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header-nav h1 { margin: 0; }
+        .nav-links { display: flex; gap: 1rem; align-items: center; }
+        .success-message { background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #c3e6cb; }
+        .error-message { background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #f5c6cb; }
+        table { width: 100%; margin-top: 1rem; }
+        .action-buttons { display: flex; gap: 0.5rem; }
+        .action-buttons button { margin: 0; padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .edit-btn { background-color: #007bff; }
+        .delete-btn { background-color: #dc3545; }
+        details { margin: 1.5rem 0; }
+        summary { cursor: pointer; font-weight: bold; padding: 0.75rem; background-color: var(--primary); color: white; border-radius: 4px; }
+        summary:hover { opacity: 0.9; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .user-info span { font-weight: bold; }
     </style>
 </head>
 <body>
