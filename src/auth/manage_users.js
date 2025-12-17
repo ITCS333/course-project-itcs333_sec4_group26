@@ -117,4 +117,4 @@ if (typeof document !== 'undefined') {
 
   // --- Initial Page Load ---
   loadStudentsAndInitialize();
-}
+
