@@ -1,12 +1,16 @@
+// --- Global Data Store ---
 let students = [];
 
+// --- Element Selections ---
 const studentTableBody = document.querySelector('#student-table tbody');
 const addStudentForm = document.getElementById('add-student-form');
 const changePasswordForm = document.getElementById('password-form');
 const searchInput = document.getElementById('search-input');
 const tableHeaders = document.querySelectorAll('#student-table thead th');
 
+// --- Functions ---
 
+// Create a table row for a student
 function createStudentRow(student) {
   const tr = document.createElement('tr');
 
@@ -36,8 +40,8 @@ function createStudentRow(student) {
 
   return tr;
 }
-aram {Array} studentArray
 
+// Render the student table
 function renderTable(studentArray) {
   if (!studentTableBody) return;
   studentTableBody.innerHTML = '';
@@ -48,23 +52,13 @@ function renderTable(studentArray) {
   });
 }
 
-
+// Placeholder functions for forms and events
 function handleChangePassword(event) {}
-
-
 function handleAddStudent(event) {}
-
-
 function handleTableClick(event) {}
-
-
 function handleSearch(event) {}
-
-
 function handleSort(event) {}
+async function loadStudentsAndInitialize() {}
 
-
-async function loadStudentsAndInitialize() {
-
-}
+// Initial page load (commented out for Jest)
 
