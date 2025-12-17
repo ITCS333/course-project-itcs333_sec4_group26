@@ -319,4 +319,7 @@ async function loadStudentsAndInitialize() {
 
 // --- Initial Page Load ---
 // Call the main async function to start the application.
-loadStudentsAndInitialize();
+if (typeof window !== 'undefined') {
+  loadStudentsAndInitialize();
+}
+
