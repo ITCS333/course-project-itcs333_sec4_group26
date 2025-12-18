@@ -2,8 +2,16 @@
 session_start();
 require "../common/db.php";
 
+// تأكد أن المستخدم مسجل دخول
 if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
     die("Access denied. Please login.");
+}
+
+// تحقق من نوع الطلب
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405); // Method Not Allowed
+    die("Only GET requests are allowed.");
 }
 
 $user_id = $_SESSION['user_id'];
@@ -14,7 +22,6 @@ $role = $_SESSION['role'];
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- تم إضافة meta viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discussion Board</title>
     <style>
@@ -38,6 +45,7 @@ $role = $_SESSION['role'];
     </tr>
 
 <?php
+// جلب المواضيع من قاعدة البيانات
 $stmt = $pdo->query("
     SELECT topics.*, users.name 
     FROM topics 
@@ -51,10 +59,10 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             <a href='view_topic.php?id={$row['id']}'>" .
             htmlspecialchars($row['subject']) .
          "</a><br>
-         <small>by {$row['name']}</small>
+         <small>by " . htmlspecialchars($row['name']) . "</small>
           </td>";
 
-    echo "<td>{$row['created_at']}</td>";
+    echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
 
     echo "<td>";
 
