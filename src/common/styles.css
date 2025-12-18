@@ -20,9 +20,7 @@ body {
   min-height: 100vh;
 }
 
-/* ========================
-   TYPOGRAPHY
-   ======================== */
+/* TYPOGRAPHY */
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
@@ -44,9 +42,7 @@ a:focus {
   color: #005fa3;
 }
 
-/* ========================
-   LAYOUT CONTAINERS
-   ======================== */
+/* LAYOUT CONTAINERS */
 
 .container {
   width: 90%;
@@ -55,9 +51,7 @@ a:focus {
   padding: 1rem 0;
 }
 
-/* ========================
-   NAVIGATION
-   ======================== */
+/* NAVIGATION */
 
 nav {
   background: #2c3e50;
@@ -80,20 +74,17 @@ nav ul li a:hover {
   color: #3498db;
 }
 
-/* ========================
-   MAIN CONTENT AREA
-   ======================== */
+/* MAIN CONTENT AREA */
 
 main {
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 1rem;
   background: #f9f9f9;
   border-radius: 6px;
 }
 
-/* ========================
-   BUTTONS
-   ======================== */
+/* BUTTONS */
 
 button,
 .btn {
@@ -112,9 +103,13 @@ button:hover,
   background: #005fa3;
 }
 
-/* ========================
-   FORM ELEMENTS
-   ======================== */
+button:focus,
+.btn:focus {
+  outline: 2px solid #005fa3;
+}
+
+
+/* FORM ELEMENTS */
 
 input, 
 textarea, 
@@ -132,9 +127,7 @@ input, textarea {
   margin: .5rem 0;
 }
 
-/* ========================
-   TABLES (if used)
-   ======================== */
+/* TABLES */
 
 table {
   width: 100%;
@@ -148,9 +141,7 @@ th, td {
   text-align: left;
 }
 
-/* ========================
-   FOOTER
-   ======================== */
+/* FOOTER */
 
 footer {
   background: #34495e;
@@ -159,3 +150,13 @@ footer {
   padding: .75rem;
   margin-top: 2rem;
 }
+
+/* Mobile View */
+
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
