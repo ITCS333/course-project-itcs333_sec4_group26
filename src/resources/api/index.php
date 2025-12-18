@@ -115,6 +115,7 @@ $comment_id = $_GET['comment_id'] ?? null;
  */
 function getAllResources($db) {
     // TODO: Initialize the base SQL query
+    $currentUser = $_SESSION['user'] ?? 'Guest';
     // SELECT id, title, description, link, created_at FROM resources
    $query = "SELECT id, title, description, link, created_at FROM resources";
 
@@ -137,7 +138,7 @@ function getAllResources($db) {
     $query .= " ORDER BY $sort $order";
 
     // TODO: Add ORDER BY clause to query
-    stmt = $db->prepare($query);
+$stmt = $db->prepare($query);
 
     // TODO: Prepare the SQL query using PDO
     if ($search) {
@@ -147,7 +148,10 @@ function getAllResources($db) {
 
     // TODO: If search parameter was used, bind the search parameter
     // Use % wildcards for LIKE search
-    
+    if ($search) {
+        $searchTerm = "%$search%";
+        $stmt->bindParam(':search', $searchTerm);
+    }
     // TODO: Execute the query
     $stmt->execute();
 
@@ -156,8 +160,7 @@ function getAllResources($db) {
 
     // TODO: Return JSON response with success status and data
     // Use the helper function sendResponse()
-    sendResponse(['success' => true, 'data' => $resources]);
-
+ sendResponse(['success' => true, 'data' => $resources, 'session_user' => $currentUser]);
 }
 
 
@@ -527,7 +530,9 @@ function deleteComment($db, $commentId) {
 
 try {
     // TODO: Route the request based on HTTP method and action parameter
-    
+   //dummy session
+    $_SESSION['last_access'] = time();
+
     if ($method === 'GET') {
         if ($action === 'comments') {
             getCommentsByResourceId($db, $resource_id);
@@ -673,7 +678,6 @@ function sanitizeInput($data) {
  * @return array - Array with 'valid' (bool) and 'missing' (array of missing fields)
  */
 function validateRequiredFields($data, $requiredFields) {
-    function validateRequiredFields($data, $requiredFields) {
     $missing = [];
     foreach ($requiredFields as $field) {
         if (empty($data[$field])) $missing[] = $field;
