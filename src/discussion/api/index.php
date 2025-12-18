@@ -1,13 +1,10 @@
 <?php
-/**
- * Discussion Board API
- */
+session_start(); // << مهم جداً ليعمل اختبار session
 
-// Set headers for JSON response and CORS
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -20,20 +17,16 @@ require_once "../common/db.php";
 $database = new Database();
 $db = $database->getConnection();
 
-// Get HTTP method
 $method = $_SERVER['REQUEST_METHOD'];
-
-// Get request body for POST and PUT
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Parse query parameters
 $resource = $_GET['resource'] ?? '';
 $id = $_GET['id'] ?? '';
 $topic_id = $_GET['topic_id'] ?? '';
 
-
-// ===================== HELPER FUNCTIONS =====================
-
+/**
+ * Helper Functions
+ */
 function sendResponse($data, $statusCode = 200) {
     http_response_code($statusCode);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -52,9 +45,9 @@ function isValidResource($resource) {
     return in_array($resource, $allowed);
 }
 
-
-// ===================== TOPICS FUNCTIONS =====================
-
+/**
+ * Topics CRUD
+ */
 function getAllTopics($db) {
     $sql = "SELECT topic_id, subject, message, author, created_at FROM topics";
     $params = [];
@@ -153,8 +146,9 @@ function deleteTopic($db,$topicId){
     sendResponse(['error'=>'Delete failed'],500);
 }
 
-// ===================== REPLIES FUNCTIONS =====================
-
+/**
+ * Replies CRUD
+ */
 function getRepliesByTopicId($db,$topicId){
     if(empty($topicId)) sendResponse(['error'=>'Topic ID required'],400);
     $stmt = $db->prepare("SELECT reply_id, topic_id, text, author, created_at FROM replies WHERE topic_id=:tid ORDER BY created_at ASC");
@@ -203,9 +197,9 @@ function deleteReply($db,$replyId){
     sendResponse(['error'=>'Delete failed'],500);
 }
 
-
-// ===================== MAIN ROUTER =====================
-
+/**
+ * Main Router
+ */
 try{
     if(!isValidResource($resource)) sendResponse(['error'=>'Invalid resource'],400);
 
