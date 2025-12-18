@@ -1,76 +1,59 @@
-<!--
-  Requirement: Create the Dedicated Page for a Single Week
-  Phase 1: HTML Structure completed
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Charset + viewport -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Page title -->
     <title>Week Details</title>
-
-    <!-- Stylesheet (update path if needed) -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/src/common/styles.css">
+    <script src="details.js" defer></script>
 </head>
 <body>
 
     <!-- Page Header -->
     <header>
-        <h1>Week 1: Introduction to HTML</h1>
+        <h1 id="week-title">Week 1: Introduction to HTML</h1>
     </header>
 
-    <!-- Main Content -->
     <main>
 
-        <!-- Section 1: Weekly Information -->
+        <!-- Weekly Information -->
         <article>
-            <p><strong>Starts on:</strong> 2025-10-27</p>
+            <p id="week-start-date"><strong>Starts on:</strong> 2025-10-27</p>
 
             <h2>Description & Notes</h2>
-            <p>
-                This week covers the fundamental building blocks of the web, including
-                structure, semantic tags, and basic HTML elements such as headings,
-                paragraphs, links, and images.
+            <p id="week-description">
+                This week covers the building blocks of the web...
             </p>
 
             <h2>Exercises & Resources</h2>
-            <ul>
+            <ul id="week-links-list">
                 <li><a href="#" target="_blank">Exercise 1 - Basic Tags</a></li>
                 <li><a href="#" target="_blank">Exercise 2 - Semantic Layout</a></li>
             </ul>
         </article>
 
-        <!-- Section 2: Discussion Forum -->
+        <!-- Discussion Forum -->
         <section id="discussion-forum">
             <h2>Discussion</h2>
 
-            <!-- Existing Comments -->
-            <div id="comments-container">
-
-                <!-- Dummy comment #1 -->
+            <div id="comment-list">
                 <article class="comment">
-                    <p>I have a question about the &lt;header&gt; tag.</p>
+                    <p>I have a question about &lt;header&gt; tag.</p>
                     <footer>Posted by: John Doe</footer>
                 </article>
 
-                <!-- Dummy comment #2 -->
                 <article class="comment">
                     <p>Should we always use semantic tags?</p>
                     <footer>Posted by: Ali Hassan</footer>
                 </article>
-
             </div>
 
-            <!-- Add Comment Form -->
             <form id="comment-form" action="#">
                 <fieldset>
                     <legend>Ask a Question</legend>
 
-                    <label for="new-comment">Your Comment:</label>
-                    <textarea id="new-comment" rows="4" required></textarea>
+                    <label for="new-comment-text">Your Comment:</label>
+                    <textarea id="new-comment-text" rows="4" required></textarea>
 
                     <button type="submit">Post Comment</button>
                 </fieldset>

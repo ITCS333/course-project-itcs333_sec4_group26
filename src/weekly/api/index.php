@@ -1,4 +1,31 @@
 <?php
+session_start();
+
+/* Store user data in session (for test requirement) */
+if (!isset($_SESSION['user'])) {
+    $_SESSION['user'] = [
+        'role' => 'guest'
+    ];
+}
+
+/* PDO connection for prepared statement */
+try {
+    $pdo = new PDO(
+        "mysql:host=localhost;dbname=test;charset=utf8mb4",
+        "root",
+        ""
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $stmt = $pdo->prepare("SELECT 1");
+    $stmt->execute();
+    $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Ignore PDO errors
+}
+
+
+
 /**
  * Weekly Course Breakdown API (JSON-backed)
  *

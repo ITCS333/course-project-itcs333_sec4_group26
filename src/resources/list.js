@@ -13,6 +13,7 @@
 
 // --- Element Selections ---
 // TODO: Select the section for the resource list ('#resource-list-section').
+const listSection = document.getElementById('resource-list-section');
 
 // --- Functions ---
 
@@ -24,7 +25,25 @@
  * (This is how the detail page will know which resource to load).
  */
 function createResourceArticle(resource) {
-  // ... your implementation here ...
+    const article = document.createElement('article');
+
+    // Create a heading for the resource title
+    const title = document.createElement('h2');
+    title.textContent = resource.title;
+    article.appendChild(title);
+
+    // Create a paragraph for the resource description
+    const description = document.createElement('p');
+    description.textContent = resource.description;
+    article.appendChild(description);
+
+    // Create an anchor tag linking to the detail page
+    const link = document.createElement('a');
+    link.href = `details.html?id=${resource.id}`; // Set href for the detail page
+    link.textContent = "View Resource & Discussion";
+    article.appendChild(link);
+
+    return article;
 }
 
 /**
@@ -39,7 +58,21 @@ function createResourceArticle(resource) {
  * - Append the returned <article> element to `listSection`.
  */
 async function loadResources() {
-  // ... your implementation here ...
+      try {
+        const response = await fetch('resources.json'); // Fetch data from resources.json
+        const resources = await response.json(); // Parse the JSON response into an array
+
+        // Clear any existing content from listSection
+        listSection.innerHTML = '';
+
+        // Loop through the resources array
+        resources.forEach(resource => {
+            const articleElement = createResourceArticle(resource); // Call createResourceArticle
+            listSection.appendChild(articleElement); // Append the article element to listSection
+        });
+    } catch (error) {
+        console.error('Error loading resources:', error);
+    }
 }
 
 // --- Initial Page Load ---

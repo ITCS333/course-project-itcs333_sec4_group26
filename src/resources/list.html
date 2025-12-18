@@ -9,17 +9,27 @@
 <html lang="en">
 <head>
     <!-- TODO: Add meta tags for charset and viewport. -->
+        <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- TODO: Add a title, e.g., "Course Resources". -->
+        <title>Course Resources</title>
 
     <!-- TODO: Link to your CSS framework or stylesheet. -->
+         <link rel="stylesheet" href="../common/style.css">
 </head>
 <body>
 
     <!-- TODO: Create a 'header' with a main heading ('h1') "Course Resources". -->
+      <header>
+        <h1>Course Resources</h1>
+    </header>
+
 
     <!-- TODO: Create the 'main' content area. -->
+      <main>
         <!-- TODO: Create a 'section' to contain the list of resources. -->
+           <section id="resource-list-section"> 
             <!-- TODO: Add 2-3 dummy resources using the structure below. -->
 
             <!-- Example Resource 1: -->
@@ -29,15 +39,31 @@
                 <!-- TODO: Add an anchor tag ('a') that links to the detail page. 
                      - For now, the 'href' can be "resource-detail.html".
                      - The link text should be "View Resource & Discussion". -->
-            <!-- End of article. -->
-
+                         <article>
+                <h2>Chapter 1 Notes</h2>
+                <p>A comprehensive summary of the first chapter, covering all key concepts.</p>
+                <a href="resource-detail.html">View Resource & Discussion</a>
+                 </article>
+ <!-- End of article. --> 
+           
             <!-- Example Resource 2: -->
             <!-- TODO: Create a second 'article' for another resource. -->
                 <!-- TODO: Add a heading, paragraph, and an anchor tag linking to "resource-detail.html". -->
+                  <article>
+                <h2>Interactive Git Tutorial</h2>
+                <p>An external website that lets you practice Git commands in your browser.</p>
+                <a href="resource-detail.html">View Resource & Discussion</a>
+            </article>
             <!-- End of article. -->
-
+<article>
+                <h2>CSS Flexbox Guide</h2>
+                <p>A complete visual guide to CSS Flexbox, with examples.</p>
+                <a href="resource-detail.html">View Resource & Discussion</a>
+            </article>
         <!-- End of resource list section. -->
+          </section>
     <!-- End of main. -->
-
+        </main>
+   <script src="list.js" defer></script> 
 </body>
 </html>
