@@ -1,7 +1,8 @@
 <?php
+session_start();
 
 $host = 'localhost';
-$db   = 'course';       // اسم القاعدة
+$db   = 'course';
 $user = 'admin';
 $pass = 'password123';
 
@@ -13,3 +14,4 @@ try {
 } catch (PDOException $e) {
     die("Database connection failed.");
 }
+?>
