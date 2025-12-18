@@ -28,5 +28,5 @@ TASK 5: Nebras Jafail 202002543
 
 
 ## REPLIT
+live preview: http://127.0.0.1:5500 
 
-Task 5 (Nebras) : https://replit.com/@nebrasjafail/ITCS333-Course-Project?v=1
