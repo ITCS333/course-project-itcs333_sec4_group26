@@ -27,6 +27,6 @@ TASK 4: Rawan Albanna 202010124
 TASK 5: Nebras Jafail 202002543
 
 
-## Replit(note: repository to be made public)
+## REPLIT
 
 Task 5 (Nebras) : https://replit.com/@nebrasjafail/ITCS333-Course-Project?v=1
